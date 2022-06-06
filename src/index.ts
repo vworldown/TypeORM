@@ -1,20 +1,24 @@
-import { AppDataSource } from "./data-source"
-import { User } from "./entity/User"
+import "reflect-metadata";
+import { createConnection } from "typeorm";
+import { User } from "./entity/User";
 
-AppDataSource.initialize().then(async () => {
+createConnection({
+  type: "mysql",
+  host: "localhost",
+  username: "root",
+  password: "123456",
+  port: 3306,
+  database: "realworld",
+  entities: [User],
+  synchronize: true,
+}).then(async (connection) => {
+  const user = new User();
+  user.email = "33333@qq.com";
+  user.password = "123456";
+  user.url = "http://www.cacsc.com";
 
-    console.log("Inserting a new user into the database...")
-    const user = new User()
-    user.firstName = "Timber"
-    user.lastName = "Saw"
-    user.age = 25
-    await AppDataSource.manager.save(user)
-    console.log("Saved a new user with id: " + user.id)
+  const repository = connection.getRepository(User);
+  await repository.save(user);
 
-    console.log("Loading users from the database...")
-    const users = await AppDataSource.manager.find(User)
-    console.log("Loaded users: ", users)
-
-    console.log("Here you can setup and run express / fastify / any other framework.")
-
-}).catch(error => console.log(error))
+  connection.close();
+});
